@@ -21,7 +21,15 @@ import androidx.compose.ui.graphics.RectangleShape
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.animation.*
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberOverscrollEffect
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 
 
 import memorygame.composeapp.generated.resources.Res
@@ -36,29 +44,20 @@ fun App() {
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .safeContentPadding()
-                .fillMaxSize(),
+                .fillMaxSize()
+                .verticalScroll(
+                    state = rememberScrollState(),
+                    overscrollEffect = rememberOverscrollEffect(),
+                ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            /*Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.fool), null)
-                    Text("Compose: $greeting")
-                }
-            }*/
             Row(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.primaryContainer)
                     .safeContentPadding()
-                    .fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically,
+                    .height(500.dp),
+                verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.Center
             ) {
                 Button(
@@ -71,20 +70,30 @@ fun App() {
                     } else {
                         Image(painterResource(Res.drawable.back), null)
                     }
-                    /*AnimatedVisibility(
-                        visible = showContent[0].value,
-                        enter = EnterTransition.None,
-                        exit = ExitTransition.None,
-                    ) {
-                        Image(painterResource(Res.drawable.fool), null)
-                    }
-                    AnimatedVisibility(
-                        visible = !showContent[0].value,
-                        enter = EnterTransition.None,
-                        exit = ExitTransition.None,
-                    ) {
+                }
+
+                //Spacer(Modifier.width(16.dp))
+
+            }
+
+            Row(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .safeContentPadding()
+                    .height(500.dp),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Button(
+                    onClick = { showContent[1].value = !showContent[1].value },
+                    shape = RectangleShape,
+                    colors = ButtonDefaults.buttonColors(Color.Black)
+                ) {
+                    if (showContent[1].value) {
+                        Image(painterResource(Res.drawable.hermit), null)
+                    } else {
                         Image(painterResource(Res.drawable.back), null)
-                    }*/
+                    }
                 }
             }
         }
