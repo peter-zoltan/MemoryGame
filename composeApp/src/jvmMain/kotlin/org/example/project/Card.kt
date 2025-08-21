@@ -17,7 +17,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -26,8 +25,42 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import memorygame.composeapp.generated.resources.*
+import org.example.project.VisibilityHandler.Faces
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+
+class VisibilityHandler(numberOfCards : Int) {
+
+    enum class Faces {
+        Front, Back, Blank
+    }
+
+    val showContent = List(numberOfCards) { mutableStateOf(Faces.Back) }
+
+    fun hideAll() {
+        showContent.forEach {
+            if (it.value == Faces.Front) it.value = Faces.Back
+        }
+    }
+
+    var revealedCounter = 0
+
+    fun onClick(buttonIndex : Int) {
+        when (revealedCounter) {
+            0, 1 -> {
+                showContent[buttonIndex].value = Faces.Front
+                revealedCounter++
+            }
+            else -> {
+                throw RuntimeException("No more than two cards may be revealed at once!")
+            }
+        }
+        if (revealedCounter == 2) {
+            hideAll()
+            revealedCounter = 0
+        }
+    }
+}
 
 fun setIcons() : List<DrawableResource> {
     val icons = listOf(
@@ -46,14 +79,15 @@ fun setIcons() : List<DrawableResource> {
 
 @Composable
 fun createLayout() {
-    val showContent = remember { List(9) { mutableStateOf(false) } }
+    //val showContent = remember { List(9) { mutableStateOf(false) } }
+    val visibility = remember { VisibilityHandler(9) }
     val icons = setIcons()
     setColumn {
         setRow {
-            setButtons(5, 0, showContent, icons)
+            setButtons(5, 0, visibility, icons)
         }
         setRow {
-            setButtons(4, 5, showContent, icons)
+            setButtons(4, 5, visibility, icons)
         }
     }
 }
@@ -96,19 +130,31 @@ fun setRow(
 fun setButtons(
     number : Int,
     startIndex : Int,
-    showContent : List<MutableState<Boolean>>,
+    //showContent : List<MutableState<Boolean>>,
+    visibility : VisibilityHandler,
     icons : List<DrawableResource>,
 ) {
     for (i in startIndex..<startIndex + number) {
         Button(
-            onClick = { showContent[i].value = !showContent[i].value },
+            onClick = { visibility.onClick(i) },
             shape = RectangleShape,
             colors = ButtonDefaults.buttonColors(Color.Black),
         ) {
-            if (showContent[i].value) {
+            /*if (visibility.showContent[i].value) {
                 Image(painterResource(icons[i]), null)
             } else {
                 Image(painterResource(Res.drawable.back), null)
+            }*/
+            when (visibility.showContent[i].value) {
+                Faces.Front -> {
+                    Image(painterResource(icons[i]), null)
+                }
+                Faces.Back -> {
+                    Image(painterResource(Res.drawable.back), null)
+                }
+                Faces.Blank -> {
+                    Image(painterResource(Res.drawable.back), null)
+                }
             }
         }
     }
