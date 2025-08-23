@@ -24,16 +24,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import memorygame.composeapp.generated.resources.*
-import org.example.project.VisibilityHandler.Faces
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
-class VisibilityHandler(numberOfCards : Int) {
 
-    enum class Faces {
-        Front, Back, Blank
-    }
+enum class Faces {
+    Front, Back, Blank
+}
+
+
+class Card(
+    front : DrawableResource,
+    back : DrawableResource = Res.drawable.back,
+    blank : DrawableResource = Res.drawable.back,
+) {
+
+    var content = Faces.Back
+
+    var clickable = true
+
+}
+
+
+class VisibilityHandler(numberOfCards : Int) {
 
     val showContent = List(numberOfCards) { mutableStateOf(Faces.Back) }
 
@@ -45,22 +65,37 @@ class VisibilityHandler(numberOfCards : Int) {
 
     var revealedCounter = 0
 
+    private val myScope = CoroutineScope(Dispatchers.Main)
+
     fun onClick(buttonIndex : Int) {
+        //if (!clickable) return
+        if (showContent[buttonIndex].value != Faces.Back) {
+            return
+        }
         when (revealedCounter) {
             0, 1 -> {
                 showContent[buttonIndex].value = Faces.Front
                 revealedCounter++
             }
             else -> {
-                throw RuntimeException("No more than two cards may be revealed at once!")
+                //throw RuntimeException("No more than two cards may be revealed at once!")
             }
         }
         if (revealedCounter == 2) {
-            hideAll()
-            revealedCounter = 0
+            myScope.launch {
+                withContext(Dispatchers.IO) {
+                    //forEach { clickable = false }
+                    delay(1000)
+                    hideAll()
+                    revealedCounter = 0
+                    //forEach { clickable = true }
+                }
+            }
         }
     }
+
 }
+
 
 fun setIcons() : List<DrawableResource> {
     val icons = listOf(
@@ -77,9 +112,9 @@ fun setIcons() : List<DrawableResource> {
     return icons
 }
 
+
 @Composable
 fun createLayout() {
-    //val showContent = remember { List(9) { mutableStateOf(false) } }
     val visibility = remember { VisibilityHandler(9) }
     val icons = setIcons()
     setColumn {
@@ -91,6 +126,7 @@ fun createLayout() {
         }
     }
 }
+
 
 @Composable
 fun setColumn (
@@ -111,6 +147,7 @@ fun setColumn (
     )
 }
 
+
 @Composable
 fun setRow(
     rowContent : @Composable (RowScope.() -> Unit)
@@ -126,11 +163,11 @@ fun setRow(
     )
 }
 
+
 @Composable
 fun setButtons(
     number : Int,
     startIndex : Int,
-    //showContent : List<MutableState<Boolean>>,
     visibility : VisibilityHandler,
     icons : List<DrawableResource>,
 ) {
@@ -140,11 +177,6 @@ fun setButtons(
             shape = RectangleShape,
             colors = ButtonDefaults.buttonColors(Color.Black),
         ) {
-            /*if (visibility.showContent[i].value) {
-                Image(painterResource(icons[i]), null)
-            } else {
-                Image(painterResource(Res.drawable.back), null)
-            }*/
             when (visibility.showContent[i].value) {
                 Faces.Front -> {
                     Image(painterResource(icons[i]), null)
