@@ -28,53 +28,62 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import memorygame.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 
-enum class Faces {
-    Front, Back, Blank
-}
-
-
 class Card(
-    front : DrawableResource,
-    back : DrawableResource = Res.drawable.back,
-    blank : DrawableResource = Res.drawable.back,
+    val front : DrawableResource,
+    val back : DrawableResource = Res.drawable.back,
+    val blank : DrawableResource = Res.drawable.back,
 ) {
 
-    var content = Faces.Back
+    var face = mutableStateOf(back)
+
+    fun flip() {
+        face.value = if (face.value == back) front else back
+    }
+
+    fun take() {
+        face.value = blank
+    }
 
     var clickable = true
 
+    fun clickable() : Boolean {
+        return clickable && (face.value == back)
+    }
+
 }
 
 
-class VisibilityHandler(numberOfCards : Int) {
-
-    val showContent = List(numberOfCards) { mutableStateOf(Faces.Back) }
-
-    fun hideAll() {
-        showContent.forEach {
-            if (it.value == Faces.Front) it.value = Faces.Back
-        }
-    }
+class Deck(val cards : List<Card>) {
 
     var revealedCounter = 0
 
     private val myScope = CoroutineScope(Dispatchers.Main)
 
+    fun hideAll() {
+        cards.forEach {
+            if (it.face.value == it.front) it.flip()
+        }
+    }
+
+    fun access(clickable : Boolean) {
+        cards.forEach {
+            it.clickable = clickable
+        }
+    }
+
     fun onClick(buttonIndex : Int) {
-        //if (!clickable) return
-        if (showContent[buttonIndex].value != Faces.Back) {
+        if (!cards[buttonIndex].clickable()) {
             return
         }
         when (revealedCounter) {
             0, 1 -> {
-                showContent[buttonIndex].value = Faces.Front
+                cards[buttonIndex].face.value = cards[buttonIndex].front
                 revealedCounter++
             }
             else -> {
@@ -84,11 +93,11 @@ class VisibilityHandler(numberOfCards : Int) {
         if (revealedCounter == 2) {
             myScope.launch {
                 withContext(Dispatchers.IO) {
-                    //forEach { clickable = false }
+                    access(false)
                     delay(1000)
                     hideAll()
                     revealedCounter = 0
-                    //forEach { clickable = true }
+                    access(true)
                 }
             }
         }
@@ -97,32 +106,32 @@ class VisibilityHandler(numberOfCards : Int) {
 }
 
 
-fun setIcons() : List<DrawableResource> {
-    val icons = listOf(
-        Res.drawable.fool,
-        Res.drawable.hermit,
-        Res.drawable.hanged_man,
-        Res.drawable.justice,
-        Res.drawable.magician,
-        Res.drawable.moon,
-        Res.drawable.star,
-        Res.drawable.sun,
-        Res.drawable.world,
+fun setCards() : List<Card> {
+    val cards = listOf(
+        Card(Res.drawable.fool),
+        Card(Res.drawable.hermit),
+        Card(Res.drawable.hanged_man),
+        Card(Res.drawable.justice),
+        Card(Res.drawable.magician),
+        Card(Res.drawable.moon),
+        Card(Res.drawable.star),
+        Card(Res.drawable.sun),
+        Card(Res.drawable.world),
     )
-    return icons
+    return cards
 }
 
 
 @Composable
 fun createLayout() {
-    val visibility = remember { VisibilityHandler(9) }
-    val icons = setIcons()
+    val cards = setCards()
+    val deck = remember { Deck(cards) }
     setColumn {
         setRow {
-            setButtons(5, 0, visibility, icons)
+            setButtons(5, 0, deck)
         }
         setRow {
-            setButtons(4, 5, visibility, icons)
+            setButtons(4, 5, deck)
         }
     }
 }
@@ -168,26 +177,15 @@ fun setRow(
 fun setButtons(
     number : Int,
     startIndex : Int,
-    visibility : VisibilityHandler,
-    icons : List<DrawableResource>,
+    deck : Deck,
 ) {
     for (i in startIndex..<startIndex + number) {
         Button(
-            onClick = { visibility.onClick(i) },
+            onClick = { deck.onClick(i) },
             shape = RectangleShape,
             colors = ButtonDefaults.buttonColors(Color.Black),
         ) {
-            when (visibility.showContent[i].value) {
-                Faces.Front -> {
-                    Image(painterResource(icons[i]), null)
-                }
-                Faces.Back -> {
-                    Image(painterResource(Res.drawable.back), null)
-                }
-                Faces.Blank -> {
-                    Image(painterResource(Res.drawable.back), null)
-                }
-            }
+            Image(painterResource(deck.cards[i].face.value), null)
         }
     }
 }
