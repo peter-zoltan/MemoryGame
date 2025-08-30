@@ -37,7 +37,7 @@ import org.jetbrains.compose.resources.painterResource
 class Card(
     val front : DrawableResource,
     val back : DrawableResource = Res.drawable.back,
-    val blank : DrawableResource = Res.drawable.back,
+    val blank : DrawableResource = Res.drawable.blank,
 ) {
 
     var face = mutableStateOf(back)
@@ -77,6 +77,15 @@ class Deck(val cards : List<Card>) {
         }
     }
 
+    fun checkMatch() {
+        val first = cards.find { it.face.value == it.front }
+        val second = cards.findLast { it.face.value == it.front }
+        if (first!!.front == second!!.front) {
+            first.take()
+            second.take()
+        }
+    }
+
     fun onClick(buttonIndex : Int) {
         if (!cards[buttonIndex].clickable()) {
             return
@@ -95,6 +104,7 @@ class Deck(val cards : List<Card>) {
                 withContext(Dispatchers.IO) {
                     access(false)
                     delay(1000)
+                    checkMatch()
                     hideAll()
                     revealedCounter = 0
                     access(true)
@@ -112,11 +122,15 @@ fun setCards() : List<Card> {
         Card(Res.drawable.hermit),
         Card(Res.drawable.hanged_man),
         Card(Res.drawable.justice),
-        Card(Res.drawable.magician),
+        Card(Res.drawable.fool),
+        Card(Res.drawable.hermit),
+        Card(Res.drawable.hanged_man),
+        Card(Res.drawable.justice),
+        /*Card(Res.drawable.magician),
         Card(Res.drawable.moon),
         Card(Res.drawable.star),
         Card(Res.drawable.sun),
-        Card(Res.drawable.world),
+        Card(Res.drawable.world),*/
     )
     return cards
 }
@@ -128,10 +142,10 @@ fun createLayout() {
     val deck = remember { Deck(cards) }
     setColumn {
         setRow {
-            setButtons(5, 0, deck)
+            setButtons(4, 0, deck)
         }
         setRow {
-            setButtons(4, 5, deck)
+            setButtons(4, 4, deck)
         }
     }
 }
