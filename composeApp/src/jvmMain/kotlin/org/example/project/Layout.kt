@@ -27,7 +27,7 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun createLayout() {
-    val cards = setCards()
+    val cards = setCards().permutate()
     val deck = remember { Deck(cards) }
     setColumn {
         setRow {

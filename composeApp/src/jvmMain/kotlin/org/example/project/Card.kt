@@ -110,3 +110,13 @@ fun setCards() : List<Card> {
     )
     return cards
 }
+
+fun List<Card>.permutate() : List<Card> {
+    val result = mutableListOf<Card>()
+    val indexes = Array (this.size) { it }
+    indexes.shuffle()
+    for (i in 0..<this.size) {
+        result.add(this[indexes[i]])
+    }
+    return result
+}
