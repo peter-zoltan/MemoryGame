@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.painterResource
 
+
 @Composable
 fun createLayout() {
     val cards = setCards().permutate()
@@ -100,6 +101,7 @@ fun setButtons(
         }
     }
 }
+
 
 @Composable
 fun finishedScreen(
