@@ -1,5 +1,7 @@
 package org.example.project
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,19 +18,24 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun createLayout() {
     val cards = setCards().permutate()
     val deck = remember { Deck(cards) }
+    val finished by remember { deck.finished }
     setColumn {
         setRow {
             setButtons(4, 0, deck)
@@ -36,6 +43,7 @@ fun createLayout() {
         setRow {
             setButtons(4, 4, deck)
         }
+        finishedScreen(finished)
     }
 }
 
@@ -89,6 +97,24 @@ fun setButtons(
             colors = ButtonDefaults.buttonColors(Color.Black),
         ) {
             Image(painterResource(deck.cards[i].face.value), null)
+        }
+    }
+}
+
+@Composable
+fun finishedScreen(
+    finished: Boolean
+) {
+    Row {
+        AnimatedVisibility(
+            visible = finished,
+            enter = slideInVertically()
+        ) {
+            Text(
+                text = "Victory!",
+                fontSize = 90.sp,
+                fontWeight = FontWeight.Bold,
+            )
         }
     }
 }

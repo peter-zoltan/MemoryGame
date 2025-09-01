@@ -35,9 +35,13 @@ class Card(
 }
 
 
-class Deck(val cards : List<Card>) {
+class Deck(
+    val cards : List<Card>
+) {
 
     var revealedCounter = 0
+
+    val finished = mutableStateOf(false)
 
     private val myScope = CoroutineScope(Dispatchers.Main)
 
@@ -59,7 +63,15 @@ class Deck(val cards : List<Card>) {
         if (first!!.front == second!!.front) {
             first.take()
             second.take()
+            checkFinished()
         }
+    }
+
+    fun checkFinished() {
+        cards.forEach {
+            if (it.face.value != it.blank) return
+        }
+        finished.value = true
     }
 
     fun onClick(buttonIndex : Int) {
